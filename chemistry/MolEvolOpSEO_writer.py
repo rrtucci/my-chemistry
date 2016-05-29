@@ -359,6 +359,10 @@ class MolEvolOpSEO_writer(SEO_writer):
 
         for theta_index in range(0, 3):
             theta = ut.centered_rads(thetas[theta_index])
+            if theta_index == 1:
+                sign = +1
+            else:
+                sign = -1
             if abs(theta) > ut.TOL:
                 trols = Controls(self.num_orbitals+1)
                 for r in range(0, 3):
@@ -368,7 +372,7 @@ class MolEvolOpSEO_writer(SEO_writer):
                         trols.set_control(bits[r], True)
                 trols.refresh_lists()
                 self.write_controlled_one_bit_gate(
-                    bits[3], trols, OneBitGates.rot_ax, [theta, 1])
+                    bits[3], trols, OneBitGates.rot_ax, [sign*theta, 1])
 
     @staticmethod
     def extended_combi(combi):
