@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 NOTA
 NOTA
 NOTA	Neutralized dumbbell
@@ -25,31 +24,3 @@ NOTA	Neutralized dumbbell
 NOTA	Neutralized dumbbell
 |   |   |   |   Z---@
 NOTA	Neutralized dumbbell
-=======
-NOTA
-NOTA
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-|   |   Z---@   |   |
-NOTA
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-|   |   |   |   Z---@
-NOTA	Neutralized dumbbell
-SIGY
-NOTA
-NOTA
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-|   |   Z---@   |   |
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-NOTA	Neutralized dumbbell
-|   |   |   |   Z---@
-NOTA	Neutralized dumbbell
->>>>>>> 21cd2e142e6f34c43e1165f581854841d7beba0f
