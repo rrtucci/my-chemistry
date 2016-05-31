@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 NOTA
 NOTA
 NOTA	Neutralized dumbbell
@@ -24,3 +25,31 @@ NOTA	Neutralized dumbbell
 NOTA	Neutralized dumbbell
 SIGZ	AT	1	IF	0T
 NOTA	Neutralized dumbbell
+=======
+NOTA
+NOTA
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+SIGZ	AT	3	IF	2T
+NOTA
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+SIGZ	AT	1	IF	0T
+NOTA	Neutralized dumbbell
+SIGY
+NOTA
+NOTA
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+SIGZ	AT	3	IF	2T
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+NOTA	Neutralized dumbbell
+SIGZ	AT	1	IF	0T
+NOTA	Neutralized dumbbell
+>>>>>>> 21cd2e142e6f34c43e1165f581854841d7beba0f
