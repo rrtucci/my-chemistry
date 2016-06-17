@@ -20,13 +20,10 @@ if __name__ == "__main__":
 
     file_prefix = "chem_io_folder//H2_ground_state"
     emb = CktEmbedder(num_bits, num_bits)
-
-    wr = PhaseEstSEO_writer(do_write=False,
+    atom_wr = MolEvolOpSEO_writer(data=H2EvolOpData(),
+                            do_write=False)
+    wr = PhaseEstSEO_writer(do_write=True,
                             num_probe_bits=num_probe_bits,
+                            atom_writer=atom_wr,
                             file_prefix=file_prefix,
                             emb=emb)
-    wr.atom_wr = MolEvolOpSEO_writer(data=H2EvolOpData(),
-                            do_write=False,
-                            english_out=wr.english_out,
-                            picture_out=wr.picture_out)
-    wr.write()

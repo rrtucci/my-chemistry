@@ -682,5 +682,4 @@ if __name__ == "__main__":
         do_write=False,
         file_prefix=file_prefix,
         emb=emb)
-
     wr.write_pow(12)
