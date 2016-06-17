@@ -17,7 +17,7 @@ class H2EvolOpData(MolEvolOpData):
         """
         MolEvolOpData.__init__(self)
 
-    def set_arg_list(self):
+    def finish_init(self):
         """
         This function overrides function with same name in parent class.
 
@@ -52,22 +52,4 @@ class H2EvolOpData(MolEvolOpData):
 
 if __name__ == "__main__":
     data = H2EvolOpData()
-    data.set_arg_list()
-    arg_list = data.get_arg_list()
-    for k in range(len(arg_list)):
-        print("\nk=", k)
-        print(arg_list[k])
-
-        # arg_list = [
-        #     self.do_notas,
-        #     self.approx,
-        #     self.num_orbitals,
-        #     self.num_trot_cycles,
-        #     self.total_time,
-        #     self.global_theta,
-        #     self.diag_bit_to_theta,
-        #     self.diag_2bits_to_theta,
-        #     self._2bits_to_theta,
-        #     self._3bits_to_theta,
-        #     self._4bits_to_3thetas
-        # ]
+    data.print_params()

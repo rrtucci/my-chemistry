@@ -6,7 +6,7 @@ class MolEvolOpData:
     Molecular Evolution Operator Data. This class should be subclassed for
     each particular molecule. For example, H2EvolOpData is a child of this
     class for the H2 molecule. The child class should override the function
-    set_arg_list() to enter h_values of the molecule's Hamiltonian H, where
+    finish_init() to enter h_values of the molecule's Hamiltonian H, where
 
     Hamiltonian H =
     \sum_{k1, k2} h_value(k1, k2)* a^\dag(k1) a(k2)
@@ -48,9 +48,11 @@ class MolEvolOpData:
     approx : int
         1 for Trotter approx,
         2 for second order Trotter-Suzuki approx
+    test : bool
+        True if want to load testing data
     """
     
-    def __init__(self):
+    def __init__(self, test=False):
         """
         Constructor
 
@@ -63,6 +65,7 @@ class MolEvolOpData:
         self.num_orbitals = 0
         self.num_trot_cycles = 0
         self.total_time = 0
+        self.test = test
 
         # the following parameters are filled by using set_h
         self.global_theta = 0
@@ -71,31 +74,20 @@ class MolEvolOpData:
         self._2bits_to_theta = {}
         self._3bits_to_theta = {}
         self._4bits_to_3thetas = {}
-        
-    def get_arg_list(self):
-        """
-        Returns a list of arguments. This list is one of the input
-        parameters for the constructor of the class PhaseEstSEO_writer
 
-        Returns
-        -------
-        list[]
+        self.finish_init()
 
-        """
-        arg_list = [
-            self.do_notas,
-            self.approx,
-            self.num_orbitals,
-            self.num_trot_cycles,
-            self.total_time,
-            self.global_theta,
-            self.diag_bit_to_theta,
-            self.diag_2bits_to_theta,
-            self._2bits_to_theta,
-            self._3bits_to_theta,
-            self._4bits_to_3thetas
-        ]
-        return arg_list
+    @property
+    def its_2bits_to_theta(self):
+        return self._2bits_to_theta
+
+    @property
+    def its_3bits_to_theta(self):
+        return self._3bits_to_theta
+
+    @property
+    def its_4bits_to_3thetas(self):
+        return self._4bits_to_3thetas
 
     def set_hdiag(self, bits, h_value):
         """
@@ -221,23 +213,14 @@ class MolEvolOpData:
         else:
             assert False
 
-    def set_arg_list(self):
+    def finish_init(self):
         """
-        You must override this function in a child class for each molecule.
-        See set_test_arg_list() for an example of how to write this function.
-
-        Returns
-        -------
-        None
-
-        """
-        assert False
-
-    def set_test_arg_list(self):
-        """
-        This function is an example of what set_arg_list() should be like.
-        In this function, we use functions set_hdiag( ) and set_h() to enter
-        numerical values of coefficients of H
+        By default, self.test is set to False in order to force you to
+        override this function in a child class for each molecule. If you
+        set self.test to True, you get an example of the proper way of
+        overriding this function. A proper overrider function should use
+        set_hdiag( ) and set_h() to enter numerical values of coefficients
+        of H
 
         Hamiltonian H =
         \sum_{k1, k2} h_value(k1, k2)* a^\dag(k1) a(k2)
@@ -253,6 +236,9 @@ class MolEvolOpData:
         None
 
         """
+        if not self.test:
+            assert False
+
         self.do_notas = True
         self.approx = 2
 
@@ -286,11 +272,22 @@ class MolEvolOpData:
         self.set_h((0, 1, 2, 3), .5, 1)
         self.set_h((0, 1, 2, 3), .5, 2)
 
+    def print_params(self):
+        print('do_notas', self.do_notas)
+        print('approx=', self.approx)
+        print('num_orbitals=', self.num_orbitals)
+        print('num_trot_cycles=', self.num_trot_cycles)
+        print('total_time=', self.total_time)
+        print('test=', self.test)
+        print('global_theta=', self.global_theta)
+        print('diag_bit_to_theta=', self.diag_bit_to_theta)
+        print('diag_2bits_to_theta=', self.diag_2bits_to_theta)
+        print('_2bits_to_theta=', self._2bits_to_theta)
+        print('_3bits_to_theta=', self._3bits_to_theta)
+        print('_4bits_to_3thetas=', self._4bits_to_3thetas)
+
 
 if __name__ == "__main__":
-    data = MolEvolOpData()
-    data.set_test_arg_list()
-    arg_list = data.get_arg_list()
-    for k in range(len(arg_list)):
-        print("\nk=", k)
-        print(arg_list[k])
+    data = MolEvolOpData(test=True)
+    data.print_params()
+

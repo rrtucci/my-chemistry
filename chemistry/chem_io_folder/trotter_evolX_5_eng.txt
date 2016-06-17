@@ -119,8 +119,8 @@ NOTA	Begin controlled sigx stair
 SIGX	AT	0	IF	3T
 NOTA	End controlled sigx stair
 NOTA	Begin JW dumbbell stair
-SIGZ	AT	1	IF	4T
 SIGZ	AT	2	IF	4T
+SIGZ	AT	1	IF	4T
 NOTA	End JW dumbbell stair
 NEXT	-1
 NEXT	12

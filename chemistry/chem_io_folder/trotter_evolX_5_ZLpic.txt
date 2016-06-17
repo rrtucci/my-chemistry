@@ -119,8 +119,8 @@ NOTA	Begin controlled sigx stair
 |   @---+---+---X   
 NOTA	End controlled sigx stair
 NOTA	Begin JW dumbbell stair
-@---+---+---Z   |   
 @---+---Z   |   |   
+@---+---+---Z   |   
 NOTA	End JW dumbbell stair
 NEXT	-1
 NEXT	12
