@@ -1,22 +1,23 @@
-# from chemistry.SuzukiSEO_writer import *
 import Utilities as ut
-from SEO_writer import *
+from PhaseEstSEO_writer import AtomWriter
+from Controls import *
+from CktEmbedder import *
+from OneBitGates import *
 # import itertools as it
 from chemistry.CombisInterlacer import *
+from chemistry.MolEvolOpData import *
 
 
-class MolEvolOpSEO_writer(SEO_writer):
+class MolEvolOpSEO_writer(AtomWriter):
     """
-    Molecular Evolution Operator SEO writer. (1) This class (or child
-    thereof) and (2) a list of parameters constructed with the class
-    MolEvolOpData (or a child thereof), are passed as arguments to the
-    constructor of PhaseEstSEO_writer. The role of this class is to write
-    the "atom" circuit used by PhaseEstSEO_writer.
+    Molecular Evolution Operator SEO writer. An object of this class is
+    passed as an argument to the constructor of PhaseEstSEO_writer. The role
+    of this class is to write the "atom" circuit used by PhaseEstSEO_writer.
 
-    So what is this atom circuit? It's a Trotter approximation of the
-    evolution operator exp(-i t H) where the Hamiltonian H depends on the
-    molecule being considered and is discussed further in the docstring for
-    the class MolEvolOpData.
+    So what is this atom circuit? It's a Trotter or Trotter-Suzuki
+    approximation of the evolution operator exp(-i t H) where the
+    Hamiltonian H depends on the molecule being considered and is discussed
+    further in the docstring for the class MolEvolOpData.
 
     The Trotter approximation of an evolution operator exp(-i t H) is given
     by
@@ -30,12 +31,12 @@ class MolEvolOpSEO_writer(SEO_writer):
 
     where A_k = sqrt(E_k)
 
-    We refer to t/dt as the number of Trotter cycles. We refer to each H_k
-    as a spoke (of the wheel that is being cycled).
+    We refer to t/dt as the number of Trotter cycles. We refer to each E_k
+    or A_k as a spoke (of the wheel that is being cycled).
 
     A combi or combination is a list of ints. For example, a 4 bit combi is
     a list of 4 ints. A bunch is a list of combis. A bunch of combis will be
-    said to be interlaced if they are disjoint as sets.
+    said to be interlaced if the combis are disjoint as sets.
 
     A spoke has a core and a sheath. The core is a bunch of interlaced
     combis. The sheath is a unitary transformation V (aka as the left
@@ -60,68 +61,40 @@ class MolEvolOpSEO_writer(SEO_writer):
 
     Parameters
     ----------
-    global_theta : float
-        global phase factor in radians
-    diag_bit_to_theta : dict[int: float]
-        for diagonal part of evolution operator, dictionary of int to theta
-        angle in radians
-    diag_2bits_to_theta : dict[list(int): float]
-        for diagonal part of evolution operator, dictionary of list of 2
-        ints to theta angle in radians
-    _2bits_to_theta : dict[list(int): float]
-        for non-diagonal part of evolution operator, dictionary of list of 2
-        ints to theta angle in radians
-    _3bits_to_theta : dict[list(int): float]
-        for non-diagonal part of evolution operator, dictionary of list of 3
-        ints to theta angle in radians
-    _4bits_to_3thetas : dict[list(int): list(float)]
-        for non-diagonal part of evolution operator, dictionary of list of 4
-        ints to list of 3 theta angles in radians
-    num_orbitals : int
-        number of qubits = number of orbitals + 1. One ancilla to implement
-        JW tails
-    num_trot_cycles : int
-        number of Trotter cycles
-    total_time : float
-        total time of evolution, t in exp( - i t H)
-    do_notas : bool
-        setting this to False turns off many NOTAS at once
-    approx : int
-        1 for Trotter approx,
-        2 for second order Trotter-Suzuki approx
+    data  MolEvolOpData
     loop_count : int
+    test : bool
+
+    emb : CktEmbedder
+    english_out : _io.TextIOWrapper
+        file object for output text file that stores English description of
+        circuit
+    picture_out : _io.TextIOWrapper
+        file object for output text file that stores ASCII Picture
+        description of circuit
+    file_prefix : str
+        beginning of the name of both English and Picture files
+    line_counter : int
+    zero_bit_first : bool
+
     """
 
-    def __init__(self, arg_list, do_write, file_prefix, emb, **kwargs):
+    def __init__(self, data, do_write, **kwargs):
         """
         Constructor
 
         Parameters
         ----------
-        arg_list : list
+        data : MolEvolOpData
         do_write : bool
-        file_prefix : str
-        emb : CktEmbedder
         kwargs : dict[]
 
         Returns
         -------
 
         """
-        SEO_writer.__init__(self, file_prefix, emb, **kwargs)
-        [
-            self.do_notas,
-            self.approx,
-            self.num_orbitals,
-            self.num_trot_cycles,
-            self.total_time,
-            self.global_theta,
-            self.diag_bit_to_theta,
-            self.diag_2bits_to_theta,
-            self._2bits_to_theta,
-            self._3bits_to_theta,
-            self._4bits_to_3thetas
-        ] = arg_list
+        AtomWriter.__init__(self, do_write, **kwargs)
+        self.data = data
 
         self.loop_count = 0
 
@@ -155,7 +128,7 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        trol = Controls.new_knob(self.num_orbitals+1, trol_bit, True)
+        trol = Controls.new_knob(self.data.num_orbitals+1, trol_bit, True)
         if dir == 1:
             fun = OneBitGates.sigx
         elif dir == 2:
@@ -186,7 +159,7 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        trol = Controls.new_knob(self.num_orbitals+1, trol_bit, True)
+        trol = Controls.new_knob(self.data.num_orbitals+1, trol_bit, True)
         if dir == 1:
             fun = OneBitGates.sigx
         elif dir == 2:
@@ -225,9 +198,9 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        self.write_NOTA("Begin JW dumbbell stair", self.do_notas)
+        self.write_NOTA("Begin JW dumbbell stair", self.data.do_notas)
         self.write_stair(z_bits, trol_bit, 3)
-        self.write_NOTA("End JW dumbbell stair", self.do_notas)
+        self.write_NOTA("End JW dumbbell stair", self.data.do_notas)
 
     def write_jw_dumbbell_stair_herm(self, z_bits, trol_bit):
         """
@@ -243,9 +216,9 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        self.write_NOTA("Begin JW dumbbell stair", self.do_notas)
+        self.write_NOTA("Begin JW dumbbell stair", self.data.do_notas)
         self.write_stair_herm(z_bits, trol_bit, 3)
-        self.write_NOTA("End JW dumbbell stair", self.do_notas)
+        self.write_NOTA("End JW dumbbell stair", self.data.do_notas)
 
     def write_controlled_sigx_stair(self, x_bits, trol_bit):
         """
@@ -269,9 +242,9 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        self.write_NOTA("Begin controlled sigx_stair", self.do_notas)
+        self.write_NOTA("Begin controlled sigx_stair", self.data.do_notas)
         self.write_stair(x_bits, trol_bit, 1)
-        self.write_NOTA("End controlled sigx_stair", self.do_notas)
+        self.write_NOTA("End controlled sigx_stair", self.data.do_notas)
 
     def write_controlled_sigx_stair_herm(self, x_bits, trol_bit):
         """
@@ -287,9 +260,9 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        self.write_NOTA("Begin controlled sigx stair", self.do_notas)
+        self.write_NOTA("Begin controlled sigx stair", self.data.do_notas)
         self.write_stair_herm(x_bits, trol_bit, 1)
-        self.write_NOTA("End controlled sigx stair", self.do_notas)
+        self.write_NOTA("End controlled sigx stair", self.data.do_notas)
 
     def write_2bit_ckt(self, bits, theta):
         """
@@ -312,7 +285,7 @@ class MolEvolOpSEO_writer(SEO_writer):
         assert len(bits) == 2
         assert bits[0] < bits[1]
 
-        trol0 = Controls.new_knob(self.num_orbitals+1, bits[0], True)
+        trol0 = Controls.new_knob(self.data.num_orbitals+1, bits[0], True)
         self.write_controlled_one_bit_gate(
             bits[1], trol0, OneBitGates.rot_ax, [theta, 1])
 
@@ -337,7 +310,7 @@ class MolEvolOpSEO_writer(SEO_writer):
         assert len(bits) == 3
         assert bits[0] < bits[1]
 
-        trols02 = Controls(self.num_orbitals+1)
+        trols02 = Controls(self.data.num_orbitals+1)
         trols02.bit_pos_to_kind = {bits[0]: True, bits[2]: True}
         trols02.refresh_lists()
         self.write_controlled_one_bit_gate(
@@ -374,7 +347,7 @@ class MolEvolOpSEO_writer(SEO_writer):
             else:
                 sign = -1
             if abs(theta) > ut.TOL:
-                trols = Controls(self.num_orbitals+1)
+                trols = Controls(self.data.num_orbitals+1)
                 for r in range(0, 3):
                     if r == 2 - theta_index:
                         trols.set_control(bits[r], False)
@@ -431,15 +404,15 @@ class MolEvolOpSEO_writer(SEO_writer):
 
         """
 
-        self.write_NOTA("****Begin diag 1 bit spoke", self.do_notas)
+        self.write_NOTA("****Begin diag 1 bit spoke", self.data.do_notas)
 
-        self.write_global_phase_fac(self.global_theta*theta_frac)
+        self.write_global_phase_fac(self.data.global_theta*theta_frac)
 
-        for k, theta in self.diag_bit_to_theta.items():
+        for k, theta in self.data.diag_bit_to_theta.items():
             self.write_one_bit_gate(
                 k, OneBitGates.rot_ax, [theta*theta_frac, 3])
 
-        self.write_NOTA("****End diag 1 bit spoke", self.do_notas)
+        self.write_NOTA("****End diag 1 bit spoke", self.data.do_notas)
 
     def write_diag_2bit_spoke(self, bunch, theta_frac=1):
         """
@@ -458,15 +431,15 @@ class MolEvolOpSEO_writer(SEO_writer):
 
         """
 
-        self.write_NOTA("****Begin diag 2bit spoke", self.do_notas)
+        self.write_NOTA("****Begin diag 2bit spoke", self.data.do_notas)
 
         for combi in bunch:
-            trols = Controls.new_knob(self.num_orbitals+1, combi[1], True)
-            theta = self.diag_2bits_to_theta[combi]
+            trols = Controls.new_knob(self.data.num_orbitals+1, combi[1], True)
+            theta = self.data.diag_2bits_to_theta[combi]
             self.write_controlled_one_bit_gate(
                 combi[0], trols, OneBitGates.rot_ax, [theta*theta_frac, 3])
 
-        self.write_NOTA("****End diag 2bit spoke", self.do_notas)
+        self.write_NOTA("****End diag 2bit spoke", self.data.do_notas)
 
     def write_nondiag_spoke(self, bunch, theta_frac=1):
         """
@@ -490,12 +463,12 @@ class MolEvolOpSEO_writer(SEO_writer):
             le = len(combi)
             if le in [2, 3]:
                 jw_range = range(combi[0]+1, combi[1])
-                self.write_jw_dumbbell_stair(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair(jw_range, self.data.num_orbitals)
             elif le == 4:
                 jw_range = range(combi[0]+1, combi[1])
-                self.write_jw_dumbbell_stair(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair(jw_range, self.data.num_orbitals)
                 jw_range = range(combi[2]+1, combi[3])
-                self.write_jw_dumbbell_stair(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair(jw_range, self.data.num_orbitals)
             else:
                 assert False
 
@@ -508,23 +481,23 @@ class MolEvolOpSEO_writer(SEO_writer):
             else:
                 assert False
 
-        self.write_NOTA("****Begin spoke core", self.do_notas)
-        self.write_one_bit_gate(self.num_orbitals, OneBitGates.sigx)
+        self.write_NOTA("****Begin spoke core", self.data.do_notas)
+        self.write_one_bit_gate(self.data.num_orbitals, OneBitGates.sigx)
         for combi in bunch:
             le = len(combi)
             if le == 2:
                 self.write_2bit_ckt(combi,
-                    self._2bits_to_theta[combi]*theta_frac)
+                    self.data.its_2bits_to_theta[combi]*theta_frac)
             elif le == 3:
                 self.write_3bit_ckt(combi,
-                    self._3bits_to_theta[combi]*theta_frac)
+                    self.data.its_3bits_to_theta[combi]*theta_frac)
             elif le == 4:
                 frac_thetas = [xx*theta_frac for
-                               xx in self._4bits_to_3thetas[combi]]
+                               xx in self.data.its_4bits_to_3thetas[combi]]
                 self.write_4bit_ckt(combi, frac_thetas)
             else:
                 assert False
-        self.write_NOTA("****End spoke core", self.do_notas)
+        self.write_NOTA("****End spoke core", self.data.do_notas)
 
         for combi in bunch:
             le = len(combi)
@@ -539,12 +512,15 @@ class MolEvolOpSEO_writer(SEO_writer):
             le = len(combi)
             if le in [2, 3]:
                 jw_range = range(combi[0]+1, combi[1])
-                self.write_jw_dumbbell_stair_herm(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair_herm(jw_range,
+                                                  self.data.num_orbitals)
             elif le == 4:
                 jw_range = range(combi[2]+1, combi[3])
-                self.write_jw_dumbbell_stair_herm(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair_herm(jw_range,
+                                                  self.data.num_orbitals)
                 jw_range = range(combi[0]+1, combi[1])
-                self.write_jw_dumbbell_stair_herm(jw_range, self.num_orbitals)
+                self.write_jw_dumbbell_stair_herm(jw_range,
+                                                  self.data.num_orbitals)
             else:
                 assert False
 
@@ -558,26 +534,26 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        assert self.num_orbitals+1 == self.emb.num_bits_bef
+        assert self.data.num_orbitals+1 == self.emb.num_bits_bef
         self.loop_count -= 1
-        self.write_LOOP(self.loop_count, self.num_trot_cycles)
+        self.write_LOOP(self.loop_count, self.data.num_trot_cycles)
         
         self.write_diag_1bit_spoke()
 
-        ci = CombisInterlacer(n=self.num_orbitals,
-            combi_list=self.diag_2bits_to_theta.keys())
+        ci = CombisInterlacer(n=self.data.num_orbitals,
+            combi_list=self.data.diag_2bits_to_theta.keys())
         for bunch in ci.bunch_gen():
             self.write_diag_2bit_spoke(bunch)
 
         xcombi_to_combi = {}
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._4bits_to_3thetas})
+                            combi in self.data.its_4bits_to_3thetas})
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._3bits_to_theta})
+                            combi in self.data.its_3bits_to_theta})
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._2bits_to_theta})
+                            combi in self.data.its_2bits_to_theta})
 
-        ci = CombisInterlacer(n=self.num_orbitals,
+        ci = CombisInterlacer(n=self.data.num_orbitals,
                               combi_list=xcombi_to_combi.keys())
         for xbunch in ci.bunch_gen():
             bunch = tuple([xcombi_to_combi[xcombi] for xcombi in xbunch])
@@ -595,26 +571,26 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        assert self.num_orbitals+1 == self.emb.num_bits_bef
+        assert self.data.num_orbitals+1 == self.emb.num_bits_bef
         self.loop_count -= 1
-        self.write_LOOP(self.loop_count, self.num_trot_cycles)
+        self.write_LOOP(self.loop_count, self.data.num_trot_cycles)
 
         self.write_diag_1bit_spoke(theta_frac=1/2)
 
-        ci_diag = CombisInterlacer(n=self.num_orbitals,
-            combi_list=self.diag_2bits_to_theta.keys())
+        ci_diag = CombisInterlacer(n=self.data.num_orbitals,
+            combi_list=self.data.diag_2bits_to_theta.keys())
         for bunch in ci_diag.bunch_gen():
             self.write_diag_2bit_spoke(bunch, theta_frac=1/2)
 
         xcombi_to_combi = {}
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._4bits_to_3thetas})
+                            combi in self.data.its_4bits_to_3thetas})
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._3bits_to_theta})
+                            combi in self.data.its_3bits_to_theta})
         xcombi_to_combi.update({self.extended_combi(combi): combi for
-                            combi in self._2bits_to_theta})
+                            combi in self.data.its_2bits_to_theta})
 
-        ci = CombisInterlacer(n=self.num_orbitals,
+        ci = CombisInterlacer(n=self.data.num_orbitals,
                               combi_list=xcombi_to_combi.keys())
         bunch_ctr = 0
         num_bunches = len(ci.bunch_to_combis)
@@ -624,11 +600,12 @@ class MolEvolOpSEO_writer(SEO_writer):
                 frac = 1/2
             else:
                 frac = 1.0
-                self.write_NOTA("**********Begin central spoke", self.do_notas)
+                self.write_NOTA(
+                    "**********Begin central spoke", self.data.do_notas)
             bunch = tuple([xcombi_to_combi[xcombi] for xcombi in xbunch])
             self.write_nondiag_spoke(bunch, theta_frac=frac)
 
-        self.write_NOTA("**********End central spoke", self.do_notas)
+        self.write_NOTA("**********End central spoke", self.data.do_notas)
         bunch_ctr = 0
         for xbunch in ci.reversed_bunch_gen():
             bunch_ctr += 1
@@ -654,9 +631,9 @@ class MolEvolOpSEO_writer(SEO_writer):
         None
 
         """
-        if self.approx == 1:
+        if self.data.approx == 1:
             self.write_trotterized_evol_op()
-        elif self.approx == 2:
+        elif self.data.approx == 2:
             self.write_sec_ord_evol_op()
         else:
             assert False
@@ -682,29 +659,27 @@ class MolEvolOpSEO_writer(SEO_writer):
         self.write()
         self.write_NEXT(power)
 
-from chemistry.MolEvolOpData import *
-if __name__ == "__main__":
-    data = MolEvolOpData()
-    data.set_test_arg_list()
 
-    data.approx = 1
-    arg_list = data.get_arg_list()
-    file_prefix = "chem_io_folder//trotter_evol"
+if __name__ == "__main__":
+    data = MolEvolOpData(test=True)
+
     bit_map = list(range(5))
     emb = CktEmbedder(5, 5, bit_map)
-    wr = MolEvolOpSEO_writer(arg_list,
-        False,
-        file_prefix,
-        emb)
+
+    data.approx = 1
+    file_prefix = "chem_io_folder//trotter_evol"
+    wr = MolEvolOpSEO_writer(
+        data,
+        do_write=False,
+        file_prefix=file_prefix,
+        emb=emb)
     wr.write_pow(12)
 
     data.approx = 2
-    arg_list = data.get_arg_list()
     file_prefix = "chem_io_folder//trotter_suzuki_evol"
-    bit_map = list(range(5))
-    emb = CktEmbedder(5, 5, bit_map)
-    wr = MolEvolOpSEO_writer(arg_list,
-        False,
-        file_prefix,
-        emb)
+    wr = MolEvolOpSEO_writer(
+        data,
+        do_write=False,
+        file_prefix=file_prefix,
+        emb=emb)
     wr.write_pow(12)
