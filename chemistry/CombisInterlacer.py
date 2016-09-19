@@ -15,7 +15,7 @@ class CombisInterlacer:
     combis. The combis in a bunch are interlaced, meaning that they are
     disjoint as sets.
 
-    Parameters
+    Attributes
     ----------
     n: int
         combis will assume values in range(n)

@@ -17,7 +17,7 @@ class MolEvolOpData:
     where a^\dag(k) and a(k) are the creation and annihilation operators for
     qubit k
 
-    Parameters
+    Attributes
     ----------
     global_theta : float
         global phase factor in radians

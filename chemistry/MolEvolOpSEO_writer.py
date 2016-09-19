@@ -59,7 +59,7 @@ class MolEvolOpSEO_writer(AtomWriter):
     as this file. That pdf is a paper entitled ``Quantum Circuit for
     Estimating the Ground State Energy of Molecules", by R.R.Tucci
 
-    Parameters
+    Attributes
     ----------
     data  MolEvolOpData
     loop_count : int
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     emb = CktEmbedder(5, 5, bit_map)
 
     data.approx = 1
-    file_prefix = "chem_io_folder//trotter_evol"
+    file_prefix = "chem_io_folder/trotter_evol"
     wr = MolEvolOpSEO_writer(
         data,
         do_write=False,
@@ -676,7 +676,7 @@ if __name__ == "__main__":
     wr.write_pow(12)
 
     data.approx = 2
-    file_prefix = "chem_io_folder//trotter_suzuki_evol"
+    file_prefix = "chem_io_folder/trotter_suzuki_evol"
     wr = MolEvolOpSEO_writer(
         data,
         do_write=False,

@@ -33,7 +33,7 @@ class DumbBellNeutralizer:
     english file has an X added to the name of the original english file,
     so as not to overwrite the original one.
 
-    Parameters
+    Attributes
     ----------
     blanked_lines : list[int]
         list of lines that will be blanked out by turning them from SIGZ to
@@ -281,8 +281,8 @@ class DumbBellNeutralizer:
 
 
 if __name__ == "__main__":
-    prefix = 'chem_io_folder//db_neutralizer_test'
+    prefix = 'chem_io_folder/db_neutralizer_test'
     neu = DumbBellNeutralizer(prefix, 6, verbose=True)
 
-    prefix = 'chem_io_folder//trotter_evol'
+    prefix = 'chem_io_folder/trotter_evol'
     neu = DumbBellNeutralizer(prefix, 5, verbose=True)

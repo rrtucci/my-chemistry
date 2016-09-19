@@ -18,7 +18,7 @@ if __name__ == "__main__":
     num_orbitals = 4
     num_bits = num_probe_bits + num_orbitals + 1
 
-    file_prefix = "chem_io_folder//H2_ground_state"
+    file_prefix = "chem_io_folder/H2_ground_state"
     emb = CktEmbedder(num_bits, num_bits)
     atom_wr = MolEvolOpSEO_writer(data=H2EvolOpData(),
                             do_write=False)
